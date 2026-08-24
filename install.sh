@@ -9,7 +9,7 @@ set -euo pipefail
 REPO="eidos-agi/eidos-paseo-plugin-store"
 LATEST_BASE="https://github.com/${REPO}/releases/latest/download"
 RAW_CATALOG="https://raw.githubusercontent.com/${REPO}/main/catalog.json"
-USER_AGENT="Eidos-Paseo-Plugin-Store/0.1.0"
+USER_AGENT="Eidos-Paseo-Plugin-Store/0.1.1"
 
 plugin_id="${1:-eidos-ppm}"
 if [ "${plugin_id}" = "--update" ]; then
@@ -30,6 +30,7 @@ need curl
 need tar
 need npm
 need paseo
+need rsync
 
 if ! paseo plugin ls >/dev/null 2>&1; then
   echo "Paseo CLI cannot talk to a daemon. Start Paseo, then run this again." >&2
@@ -82,13 +83,31 @@ print("https://github.com/'"${REPO}"'/releases/latest/download/%s.tar.gz" % want
 install_from_dir() {
   local dir="$1"
   (cd "${dir}" && npm install)
-  paseo plugin install "${dir}"
-  local id
+  local id current
   id="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' "${dir}/paseo-plugin.json")"
-  if [ -n "${id}" ]; then
-    paseo plugin reload "${id}" >/dev/null 2>&1 || true
+  if [ -z "${id}" ]; then
+    echo "paseo-plugin.json is missing id" >&2
+    exit 1
   fi
-  echo "Installed ${dir}"
+  current="$(paseo plugin ls --json | python3 -c '
+import json, sys
+wanted = sys.argv[1]
+for row in json.load(sys.stdin):
+    if row.get("id") == wanted:
+        print(row.get("path") or "")
+        break
+' "${id}")"
+  if [ -n "${current}" ]; then
+    if [ "${current}" != "${dir}" ]; then
+      rsync -a --delete --exclude node_modules "${dir}/" "${current}/"
+      (cd "${current}" && npm install)
+    fi
+    paseo plugin reload "${id}"
+    echo "Updated ${id} at ${current}"
+  else
+    paseo plugin install "${dir}"
+    echo "Installed ${id} from ${dir}"
+  fi
 }
 
 if [ -n "${local_plugin}" ] && [ "${do_update}" -eq 0 ]; then

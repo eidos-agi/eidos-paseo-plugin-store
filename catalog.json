@@ -1,8 +1,8 @@
 {
   "name": "Eidos Paseo Plugin Store",
   "version": 1,
-  "release": "0.1.0",
-  "updatedAt": "2026-08-24T19:00:00.000Z",
+  "release": "0.1.1",
+  "updatedAt": "2026-08-24T19:30:00.000Z",
   "catalogUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/catalog.json",
   "installUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/install.sh",
   "plugins": [
@@ -10,7 +10,7 @@
       "id": "eidos-ppm",
       "title": "Eidos Plugin Store",
       "blurb": "Eidos Paseo Plugin Store. Manages every plugin on this daemon.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": "plugins/eidos-ppm",
       "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/eidos-ppm.tar.gz"
     },

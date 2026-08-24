@@ -305,6 +305,12 @@ async function catalog(): Promise<Catalog> {
   };
 }
 
+async function copyTree(from: string, to: string): Promise<void> {
+  mkdirSync(to, { recursive: true });
+  await runCommand("rsync", ["-a", "--delete", "--exclude", "node_modules", `${from}/`, `${to}/`]);
+  await runCommand("npm", ["install"], to);
+}
+
 async function installFromDownload(id: string, url: string, version: string): Promise<string> {
   const dest = join(CACHE_ROOT, id, version || "latest");
   mkdirSync(dest, { recursive: true });
@@ -370,14 +376,27 @@ export async function runActionHandler(
     writeRegistry(removeFromRegistry(readRegistry(), input.id));
   } else if (input.action === "install" || input.action === "update") {
     let path = input.path || row.path;
-    if (input.action === "update" || !path) {
+    const needsDownload = input.action === "update" || !path || !readManifestId(path);
+    if (needsDownload) {
       const url = row.downloadUrl;
       if (!url) {
         throw new Error(`No GitHub download URL for ${input.id}`);
       }
-      path = await installFromDownload(input.id, url, row.publishedVersion || "latest");
+      const incoming = await installFromDownload(input.id, url, row.publishedVersion || "latest");
+      if (row.installed && path && path !== incoming) {
+        await copyTree(incoming, path);
+      } else {
+        path = incoming;
+      }
     }
-    await runPaseo(["plugin", "install", path]);
+    if (!path) {
+      throw new Error(`Install needs a local path or GitHub download for ${input.id}`);
+    }
+    if (row.installed) {
+      await runPaseo(["plugin", "reload", input.id]);
+    } else {
+      await runPaseo(["plugin", "install", path]);
+    }
     writeRegistry(
       upsertRegistry(readRegistry(), {
         id: row.id,
@@ -387,9 +406,6 @@ export async function runActionHandler(
         addedAt: new Date().toISOString(),
       }),
     );
-    if (row.installed || input.action === "update") {
-      await runPaseo(["plugin", "reload", input.id]).catch(() => undefined);
-    }
   } else if (input.action === "uninstall") {
     await runPaseo(["plugin", "remove", input.id]);
   } else {
