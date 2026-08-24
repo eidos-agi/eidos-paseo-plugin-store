@@ -16,7 +16,7 @@ curl -fsSL https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest
 
 That URL does not change. Each release replaces the file behind it.
 
-Then in Paseo: **⌘K** → **Open Eidos Plugin Store**. Install Volta, Browserbase, Data, or Prim Desktop from there.
+Then in Paseo: **⌘K** → **Open Eidos Plugin Store**. Install Volta, Browserbase, Data, Prim Desktop, or Hancock from there.
 
 From a clone:
 
@@ -60,6 +60,7 @@ From a git clone: `git pull`, then `./install.sh` and `paseo plugin reload <id>`
 | `page-pane` | Paseo Browserbase |
 | `data-warehouse` | Data |
 | `prim-desktop` | Prim Desktop |
+| `hancock` | Hancock |
 
 Do not change those runtime ids. Changing an id orphans existing installs.
 

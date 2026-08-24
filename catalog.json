@@ -1,8 +1,8 @@
 {
   "name": "Eidos Paseo Plugin Store",
   "version": 1,
-  "release": "0.1.1",
-  "updatedAt": "2026-08-24T19:30:00.000Z",
+  "release": "0.1.2",
+  "updatedAt": "2026-08-24T20:20:00.000Z",
   "catalogUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/catalog.json",
   "installUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/install.sh",
   "plugins": [
@@ -45,6 +45,14 @@
       "version": "0.1.0",
       "source": "plugins/prim-desktop",
       "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/prim-desktop.tar.gz"
+    },
+    {
+      "id": "hancock",
+      "title": "Hancock",
+      "blurb": "Human signing desk. Agents queue; you approve, deny, or skip.",
+      "version": "0.1.0",
+      "source": "plugins/hancock",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/hancock.tar.gz"
     }
   ]
 }

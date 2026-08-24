@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 — 2026-08-24
+
+Hancock signing desk. Lists the local Hancock tray and lets a seated human approve, deny, or skip as `human@paseo`.
+
 ## 0.1.1 — 2026-08-24
 
 Update overlays the latest tarball onto an already-configured plugin and reloads. Paseo refuses `plugin install` when the id already exists.

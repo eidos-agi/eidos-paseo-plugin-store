@@ -208,4 +208,5 @@ export const SEED_FOLDERS = [
   "paseo/plugins/ppm",
   "paseo/plugins/eidos-paseo-plugin-store",
   "paseo/plugins/prim-desktop",
+  "paseo/plugins/hancock",
 ];

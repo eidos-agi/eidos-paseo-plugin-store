@@ -35,14 +35,19 @@ export const STORE: StoreEntry[] = [
     blurb: "Cloud Chrome groups as workspace tabs.",
   },
   {
-    id: "data-warehouse",
-    title: "Data",
+    id: "paseo-dbms",
+    title: "PaseoDBMS",
     blurb: "Data Connections and a read-only SQL viewer.",
   },
   {
     id: "prim-desktop",
     title: "Prim Desktop",
     blurb: "Load and control Prims on this Paseo. The pack stays the file.",
+  },
+  {
+    id: "hancock",
+    title: "Hancock",
+    blurb: "Human signing desk. Agents queue; you approve, deny, or skip.",
   },
 ];
 
