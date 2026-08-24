@@ -1,0 +1,50 @@
+{
+  "name": "Eidos Paseo Plugin Store",
+  "version": 1,
+  "release": "0.1.0",
+  "updatedAt": "2026-08-24T19:00:00.000Z",
+  "catalogUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/catalog.json",
+  "installUrl": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/install.sh",
+  "plugins": [
+    {
+      "id": "eidos-ppm",
+      "title": "Eidos Plugin Store",
+      "blurb": "Eidos Paseo Plugin Store. Manages every plugin on this daemon.",
+      "version": "0.1.0",
+      "source": "plugins/eidos-ppm",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/eidos-ppm.tar.gz"
+    },
+    {
+      "id": "volta",
+      "title": "Volta",
+      "blurb": "Desk: tenant → product → chat. Live work sits bright; last season stays dim.",
+      "version": "0.1.0",
+      "source": "plugins/volta",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/volta.tar.gz"
+    },
+    {
+      "id": "page-pane",
+      "title": "Paseo Browserbase",
+      "blurb": "Cloud Chrome groups as workspace tabs.",
+      "version": "0.1.0",
+      "source": "plugins/page-pane",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/page-pane.tar.gz"
+    },
+    {
+      "id": "data-warehouse",
+      "title": "Data",
+      "blurb": "Data Connections and a read-only SQL viewer.",
+      "version": "0.1.0",
+      "source": "plugins/data-warehouse",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/data-warehouse.tar.gz"
+    },
+    {
+      "id": "prim-desktop",
+      "title": "Prim Desktop",
+      "blurb": "Load and control Prims on this Paseo. The pack stays the file.",
+      "version": "0.1.0",
+      "source": "plugins/prim-desktop",
+      "download": "https://github.com/eidos-agi/eidos-paseo-plugin-store/releases/latest/download/prim-desktop.tar.gz"
+    }
+  ]
+}

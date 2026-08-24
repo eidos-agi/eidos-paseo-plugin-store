@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paseo Browserbase — workspace sessions</title>
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --side: #111113;
+    --stage: #161618;
+    --tabbar: #121214;
+    --ink: #ececec;
+    --mute: #8b8b90;
+    --line: #2a2a2e;
+    --hot: #d7d7db;
+    --chip: #1c1c20;
+    --site: #0e0e10;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  body {
+    font: 12.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: grid;
+    grid-template-rows: 36px 1fr 22px;
+  }
+  button {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .appbar, .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mute);
+    font-size: 12px;
+  }
+  .statusbar { border: 0; border-top: 1px solid var(--line); }
+  .appbar b { color: var(--ink); letter-spacing: 0.08em; font-size: 11px; }
+  .shell { display: grid; grid-template-columns: 248px 1fr; min-height: 0; }
+  .sidebar {
+    background: var(--side);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .nav { padding: 8px 8px 4px; display: flex; flex-direction: column; gap: 2px; }
+  .nav button, .chat, .side-foot button {
+    text-align: left;
+    padding: 7px 10px;
+    color: var(--mute);
+    border-radius: 6px;
+  }
+  .nav button:hover, .chat:hover, .side-foot button:hover { background: #1a1a1e; color: var(--ink); }
+  .label {
+    color: #6d6d72;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 14px 18px 6px;
+  }
+  .chats { flex: 1; padding: 0 8px; overflow: auto; }
+  .chat { display: block; width: 100%; }
+  .chat.on { background: #222226; color: var(--ink); }
+  .chat small { display: block; color: #6d6d72; margin-top: 2px; font-size: 11px; }
+  .side-foot {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    border-top: 1px solid var(--line);
+  }
+  .stage {
+    background: var(--stage);
+    min-width: 0;
+    display: grid;
+    grid-template-rows: 36px 1fr;
+  }
+  .tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 4px 6px 0;
+    background: var(--tabbar);
+    border-bottom: 1px solid var(--line);
+    overflow: auto;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    color: var(--mute);
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: 6px 6px 0 0;
+    white-space: nowrap;
+  }
+  .tab.on {
+    background: var(--stage);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .tab .kind {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6d6d72;
+  }
+  .body { min-height: 0; overflow: auto; }
+  .agent, .files, .term, .bb {
+    height: 100%;
+    display: grid;
+  }
+  .agent { grid-template-rows: auto 1fr 88px; }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mute);
+    font-size: 11px;
+  }
+  .chip {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 9px;
+    color: var(--ink);
+  }
+  .toolbar .links {
+    border: 0;
+    padding: 0;
+    flex: 1;
+  }
+  .thread { padding: 16px 18px; color: var(--mute); }
+  .thread p { margin: 0 0 12px; max-width: 52em; }
+  .thread b { color: var(--ink); font-weight: 600; }
+  .composer { border-top: 1px solid var(--line); padding: 10px 12px; }
+  .box {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-height: 64px;
+    color: var(--mute);
+  }
+  .files, .term { padding: 16px 18px; color: var(--mute); }
+  .files ul { margin: 8px 0 0; padding: 0; list-style: none; }
+  .files li { padding: 3px 0; }
+  .term pre {
+    margin: 8px 0 0;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #c8c8cc;
+  }
+  .bb.pages { grid-template-rows: 36px 28px 1fr; }
+  .bb.thumbs { grid-template-rows: 36px 1fr; }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--chip);
+    min-width: 0;
+  }
+  .seg {
+    display: flex;
+    gap: 2px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .seg button {
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: var(--mute);
+  }
+  .seg button.on { background: var(--stage); color: var(--ink); }
+  .grow { flex: 1; }
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px;
+    padding: 12px;
+    overflow: auto;
+  }
+  .thumb {
+    display: grid;
+    grid-template-rows: 26px 1fr;
+    border: 1px solid var(--line);
+    background: var(--site);
+  }
+  .thumb.on { border-color: var(--hot); }
+  .thumb.s { width: 200px; height: 148px; }
+  .thumb.m { width: 320px; height: 214px; }
+  .thumb.l { width: 480px; height: 308px; }
+  .thumb.xl { width: calc(100% - 4px); height: 420px; }
+  .thumb .cap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px;
+    min-width: 0;
+    font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--mute);
+  }
+  .thumb .cap .url {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .thumb .cap button {
+    padding: 0 5px;
+    color: var(--mute);
+  }
+  .thumb .cap button.on { color: var(--ink); }
+  .live-badge {
+    flex: none;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9aa07a;
+  }
+  .still-badge {
+    flex: none;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6d6d72;
+  }
+  .urlbar {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    padding: 4px 6px 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--chip);
+    min-width: 0;
+  }
+  .urlbar-label {
+    flex: none;
+    align-self: center;
+    padding: 0 6px;
+    color: #6d6d72;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .sites {
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow: auto;
+  }
+  .site {
+    max-width: 280px;
+    padding: 4px 10px;
+    color: var(--mute);
+    border-radius: 6px 6px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .site.on { background: var(--stage); color: var(--ink); }
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--line);
+    color: var(--mute);
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .chrome .url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chrome button {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 7px;
+    color: var(--ink);
+  }
+  .view {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+  .view small {
+    display: block;
+    margin-top: 8px;
+    color: var(--mute);
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 12px;
+  }
+</style>
+<body>
+  <div class="appbar">
+    <b>PASEO</b>
+    <span>0.5.1</span>
+    <span>group belongs to the workspace · agents link to it · many agents can share one group</span>
+  </div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="nav">
+        <button type="button">New workspace</button>
+        <button type="button">History</button>
+        <button type="button">Schedules</button>
+      </div>
+      <div class="label">Chats</div>
+      <div class="chats" id="chats"></div>
+      <div class="side-foot">
+        <button type="button">host</button>
+        <button type="button">home</button>
+        <button type="button">settings</button>
+      </div>
+    </aside>
+    <main class="stage">
+      <div class="tabs" id="tabs"></div>
+      <div class="body" id="body"></div>
+    </main>
+  </div>
+  <div class="statusbar" id="status"></div>
+<script>
+  const workspaces = [
+    {
+      id: "chat-1",
+      title: "Chat 1 · markets desk",
+      summary: "2 agents · files · terminal · 2 Browser Base groups",
+      tabs: [
+        {
+          id: "c1-do",
+          kind: "agent",
+          title: "Implement",
+          body: "<p><b>Implement</b> — this agent links to Browser Base Group 1. the group is not mine exclusively; Review is linked to it too.</p>",
+          prompt: "keep two live market views while I patch the desk",
+        },
+        {
+          id: "c1-review",
+          kind: "agent",
+          title: "Review",
+          body: "<p><b>Review</b> — linked to both groups. Implement and I share Group 1. I also have Group 2. same session, two drivers.</p>",
+          prompt: "check the two tapes against the patch",
+        },
+        {
+          id: "c1-files",
+          kind: "files",
+          title: "Files",
+          tree: ["plugins/page-pane/", "  index.ts", "  main.client.tsx", "  browser.server.ts", "  paseo-plugin.json"],
+        },
+        {
+          id: "c1-term",
+          kind: "terminal",
+          title: "Terminal",
+          prompt: "paseo plugin reload page-pane",
+        },
+        {
+          id: "c1-bb1",
+          kind: "browserbase",
+          title: "Browser Base Group 1",
+          sites: [
+            { id: "cnbc", label: "CNBC", sub: "US Markets", url: "https://www.cnbc.com/markets/us-markets/", dark: "#10141c" },
+            { id: "bbg", label: "Bloomberg", sub: "Markets", url: "https://www.bloomberg.com/markets", dark: "#0c1620" },
+          ],
+        },
+        {
+          id: "c1-bb2",
+          kind: "browserbase",
+          title: "Browser Base Group 2",
+          sites: [
+            { id: "fox", label: "Fox Business", sub: "Markets", url: "https://www.foxbusiness.com/markets", dark: "#1c1410" },
+            { id: "wsj", label: "WSJ", sub: "Markets", url: "https://www.wsj.com/news/markets", dark: "#12100c" },
+            { id: "reu", label: "Reuters", sub: "Business", url: "https://www.reuters.com/business/", dark: "#141814" },
+          ],
+        },
+      ],
+      links: [
+        { agentId: "c1-do", groupId: "c1-bb1" },
+        { agentId: "c1-review", groupId: "c1-bb1" },
+        { agentId: "c1-review", groupId: "c1-bb2" },
+      ],
+    },
+    {
+      id: "chat-2",
+      title: "Chat 2 · docs + wire",
+      summary: "2 agents · files · terminal · 2 Browser Base groups",
+      tabs: [
+        {
+          id: "c2-do",
+          kind: "agent",
+          title: "Implement",
+          body: "<p><b>Implement</b> — linked to both groups on this workspace. Review shares Group 1 with me.</p>",
+          prompt: "keep GitHub/MDN in one browser and AP/BBC in the other",
+        },
+        {
+          id: "c2-review",
+          kind: "agent",
+          title: "Review",
+          body: "<p><b>Review</b> — linked to Group 1 only. same group as Implement; I did not get a private copy.</p>",
+          prompt: "confirm both browsers still have their sites",
+        },
+        {
+          id: "c2-files",
+          kind: "files",
+          title: "Files",
+          tree: ["docs/", "  plugins.md", "  workspaces.md", "  browser.md"],
+        },
+        {
+          id: "c2-term",
+          kind: "terminal",
+          title: "Terminal",
+          prompt: "paseo plugin ls --json",
+        },
+        {
+          id: "c2-bb1",
+          kind: "browserbase",
+          title: "Browser Base Group 1",
+          sites: [
+            { id: "gh", label: "GitHub", sub: "getpaseo/paseo", url: "https://github.com/getpaseo/paseo", dark: "#101014" },
+            { id: "mdn", label: "MDN", sub: "iframe", url: "https://developer.mozilla.org/docs/Web/HTML/Element/iframe", dark: "#10181c" },
+            { id: "bbdocs", label: "Docs", sub: "Live view", url: "https://docs.browserbase.com/platform/browser/observability/session-live-view", dark: "#141018" },
+          ],
+        },
+        {
+          id: "c2-bb2",
+          kind: "browserbase",
+          title: "Browser Base Group 2",
+          sites: [
+            { id: "ap", label: "AP", sub: "Business", url: "https://apnews.com/business", dark: "#121416" },
+            { id: "bbc", label: "BBC", sub: "Business", url: "https://www.bbc.com/news/business", dark: "#101014" },
+          ],
+        },
+      ],
+      links: [
+        { agentId: "c2-do", groupId: "c2-bb1" },
+        { agentId: "c2-do", groupId: "c2-bb2" },
+        { agentId: "c2-review", groupId: "c2-bb1" },
+      ],
+    },
+  ];
+
+  const sizes = ["s", "m", "l", "xl"];
+  const selected = {
+    workspace: "chat-1",
+    tab: "c1-do",
+    site: {},
+    mode: "pages",
+    size: {},
+    defaultSize: "m",
+  };
+
+  function groupMode() {
+    return selected.mode || "pages";
+  }
+
+  function groupDefaultSize() {
+    return selected.defaultSize;
+  }
+
+  function siteSize(groupId, siteId) {
+    return (selected.size[groupId] && selected.size[groupId][siteId]) || groupDefaultSize();
+  }
+
+  function setSiteSize(groupId, siteId, size) {
+    selected.size[groupId] = Object.assign({}, selected.size[groupId], { [siteId]: size });
+  }
+
+  function seg(options, value, onPick) {
+    const box = document.createElement("div");
+    box.className = "seg";
+    for (const opt of options) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = opt.label;
+      if (opt.id === value) b.className = "on";
+      b.onclick = () => onPick(opt.id);
+      box.append(b);
+    }
+    return box;
+  }
+
+  function linksOf(w) {
+    return w.links || [];
+  }
+
+  function groupsLinkedToAgent(w, agentId) {
+    return linksOf(w)
+      .filter((link) => link.agentId === agentId)
+      .map((link) => w.tabs.find((item) => item.id === link.groupId))
+      .filter(Boolean);
+  }
+
+  function agentsLinkedToGroup(w, groupId) {
+    return linksOf(w)
+      .filter((link) => link.groupId === groupId)
+      .map((link) => w.tabs.find((item) => item.id === link.agentId))
+      .filter(Boolean);
+  }
+
+  function linkBar(label, items) {
+    const bar = document.createElement("div");
+    bar.className = "links";
+    const note = document.createElement("span");
+    note.textContent = label;
+    bar.append(note);
+    if (items.length === 0) {
+      const empty = document.createElement("span");
+      empty.textContent = "none";
+      bar.append(empty);
+      return bar;
+    }
+    for (const item of items) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = item.title;
+      b.onclick = () => {
+        selected.tab = item.id;
+        render();
+      };
+      bar.append(b);
+    }
+    return bar;
+  }
+
+  function workspace() {
+    return workspaces.find((w) => w.id === selected.workspace);
+  }
+
+  function tab() {
+    return workspace().tabs.find((t) => t.id === selected.tab) || workspace().tabs[0];
+  }
+
+  function counts(w) {
+    const kinds = w.tabs.map((t) => t.kind);
+    const n = (k) => kinds.filter((x) => x === k).length;
+    return `${n("agent")} agents · ${n("files")} files · ${n("terminal")} terminal · ${n("browserbase")} Browser Base groups`;
+  }
+
+  function popSite(site) {
+    const w = window.open("", "paseo-" + site.id, "popup=1,width=1100,height=800");
+    if (!w) return;
+    w.document.title = site.label;
+    w.document.body.style.cssText = "margin:0;background:#0b0b0c;color:#ececec;font:13px -apple-system,sans-serif;height:100%";
+    const note = w.document.createElement("div");
+    note.style.cssText = "padding:8px 12px;border-bottom:1px solid #2a2a2e;color:#8b8b90";
+    note.textContent = "one page = one URL, popped out of its group";
+    const host = w.document.createElement("div");
+    host.style.cssText = "height:calc(100% - 32px);display:grid;place-items:center;background:" + site.dark;
+    host.innerHTML = `<div style="text-align:center;letter-spacing:.12em;text-transform:uppercase">${site.label}<small style="display:block;margin-top:8px;letter-spacing:0;text-transform:none;color:#8b8b90">${site.url}</small></div>`;
+    w.document.body.append(note, host);
+  }
+
+  function render() {
+    const w = workspace();
+    const t = tab();
+    const chats = document.getElementById("chats");
+    chats.replaceChildren();
+    for (const item of workspaces) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chat" + (item.id === w.id ? " on" : "");
+      b.innerHTML = `${item.title}<small>${counts(item)}</small>`;
+      b.onclick = () => {
+        selected.workspace = item.id;
+        selected.tab = item.tabs[0].id;
+        render();
+      };
+      chats.append(b);
+    }
+
+    const tabs = document.getElementById("tabs");
+    tabs.replaceChildren();
+    for (const item of w.tabs) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tab" + (item.id === t.id ? " on" : "");
+      if (item.kind === "browserbase") {
+        b.innerHTML = `<span class="kind">group</span>${item.title}`;
+      } else {
+        b.innerHTML = `<span class="kind">${item.kind}</span>${item.title}`;
+      }
+      b.onclick = () => {
+        selected.tab = item.id;
+        render();
+      };
+      tabs.append(b);
+    }
+
+    const body = document.getElementById("body");
+    body.replaceChildren();
+
+    if (t.kind === "agent") {
+      const wrap = document.createElement("div");
+      wrap.className = "agent";
+      wrap.append(linkBar("linked groups", groupsLinkedToAgent(w, t.id)));
+      wrap.insertAdjacentHTML("beforeend", `<div class="thread">${t.body}</div><div class="composer"><div class="box">${t.prompt}</div></div>`);
+      body.append(wrap);
+    } else if (t.kind === "files") {
+      const wrap = document.createElement("div");
+      wrap.className = "files";
+      wrap.innerHTML = `<div>one files tree — this workspace has one directory</div><ul>${t.tree.map((line) => `<li>${line}</li>`).join("")}</ul>`;
+      body.append(wrap);
+    } else if (t.kind === "terminal") {
+      const wrap = document.createElement("div");
+      wrap.className = "term";
+      wrap.innerHTML = `<div>one terminal — process slot for this workspace</div><pre>$ ${t.prompt}\n</pre>`;
+      body.append(wrap);
+    } else {
+      const siteId = selected.site[t.id] || t.sites[0].id;
+      const site = t.sites.find((s) => s.id === siteId) || t.sites[0];
+      const mode = groupMode();
+      const wrap = document.createElement("div");
+      wrap.className = "bb " + mode;
+      const toolbar = document.createElement("div");
+      toolbar.className = "toolbar";
+      const kind = document.createElement("span");
+      kind.className = "urlbar-label";
+      kind.textContent = "Paseo Browserbase";
+      toolbar.append(
+        kind,
+        linkBar("linked agents", agentsLinkedToGroup(w, t.id)),
+        seg(
+          [{ id: "pages", label: "Pages" }, { id: "thumbs", label: "Thumbnails" }],
+          mode,
+          (next) => {
+            selected.mode = next;
+            render();
+          },
+        ),
+      );
+      if (mode === "thumbs") {
+        const grow = document.createElement("span");
+        grow.className = "grow";
+        toolbar.append(
+          grow,
+          seg(
+            sizes.map((id) => ({ id, label: id.toUpperCase() })),
+            groupDefaultSize(),
+            (next) => {
+              selected.defaultSize = next;
+              selected.size[t.id] = Object.fromEntries(t.sites.map((s) => [s.id, next]));
+              render();
+            },
+          ),
+        );
+      }
+      wrap.append(toolbar);
+
+      if (mode === "pages") {
+        const urlbar = document.createElement("div");
+        urlbar.className = "urlbar";
+        const urlLabel = document.createElement("span");
+        urlLabel.className = "urlbar-label";
+        urlLabel.textContent = "pages";
+        const sites = document.createElement("div");
+        sites.className = "sites";
+        for (const s of t.sites) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "site" + (s.id === site.id ? " on" : "");
+          b.title = s.url;
+          b.textContent = s.url;
+          b.onclick = () => {
+            selected.site[t.id] = s.id;
+            render();
+          };
+          sites.append(b);
+        }
+        urlbar.append(urlLabel, sites);
+        const chrome = document.createElement("div");
+        chrome.className = "chrome";
+        chrome.innerHTML = `<span>←</span><span class="url">${site.url}</span><span class="live-badge">live</span><span>↻</span>`;
+        const pop = document.createElement("button");
+        pop.type = "button";
+        pop.textContent = "↗";
+        pop.onclick = () => popSite(site);
+        chrome.append(pop);
+        const view = document.createElement("div");
+        view.className = "view";
+        view.style.background = site.dark;
+        view.innerHTML = `<div>${site.label}<small>${site.sub}<br>${site.url}</small></div>`;
+        wrap.append(urlbar, chrome, view);
+      } else {
+        const gallery = document.createElement("div");
+        gallery.className = "gallery";
+        for (const s of t.sites) {
+          const size = siteSize(t.id, s.id);
+          const tile = document.createElement("div");
+          tile.className = "thumb " + size + (s.id === site.id ? " on" : "");
+          const cap = document.createElement("div");
+          cap.className = "cap";
+          const url = document.createElement("span");
+          url.className = "url";
+          url.textContent = s.url;
+          const badge = document.createElement("span");
+          badge.className = s.id === site.id ? "live-badge" : "still-badge";
+          badge.textContent = s.id === site.id ? "live" : "still";
+          cap.append(url, badge);
+          for (const sz of sizes) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.textContent = sz.toUpperCase();
+            if (sz === size) b.className = "on";
+            b.onclick = (event) => {
+              event.stopPropagation();
+              setSiteSize(t.id, s.id, sz);
+              render();
+            };
+            cap.append(b);
+          }
+          const pop = document.createElement("button");
+          pop.type = "button";
+          pop.textContent = "↗";
+          pop.onclick = (event) => {
+            event.stopPropagation();
+            popSite(s);
+          };
+          cap.append(pop);
+          const preview = document.createElement("div");
+          preview.className = "view";
+          preview.style.background = s.dark;
+          preview.innerHTML = `<div>${s.label}<small>${s.sub}</small></div>`;
+          tile.append(cap, preview);
+          tile.onclick = () => {
+            selected.site[t.id] = s.id;
+            render();
+          };
+          gallery.append(tile);
+        }
+        wrap.append(gallery);
+      }
+      body.append(wrap);
+    }
+
+    document.getElementById("status").textContent =
+      `${w.title} · ${counts(w)} · ${t.title}` +
+      (t.kind === "browserbase" ? ` · ${groupMode()}` : "");
+  }
+
+  render();
+</script>
+</body>
+</html>

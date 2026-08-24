@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hierarchy — context / session / tab / live view</title>
+<style>
+  :root {
+    --bg: #11110e;
+    --ink: #e7e2d3;
+    --mute: #8a8474;
+    --line: #3a372e;
+    --session: #2a281f;
+    --tab: #1a1914;
+    --accent: #c4b48a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font: 13px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+    min-height: 100vh;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  header strong { font-weight: 600; letter-spacing: 0.04em; }
+  header span { color: var(--mute); }
+  header button { margin-left: auto; }
+  button {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  .pane { padding: 10px 12px 40px; }
+  .context {
+    border: 1px solid var(--line);
+    padding: 8px;
+  }
+  .context > .bar {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 8px;
+    color: var(--mute);
+  }
+  .session {
+    background: var(--session);
+    border: 1px solid var(--line);
+    margin: 8px 0 0 16px;
+    padding: 8px;
+  }
+  .session > .bar {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .tab {
+    background: var(--tab);
+    border: 1px solid var(--line);
+    margin: 6px 0 0 16px;
+  }
+  .chrome {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .chrome .url {
+    flex: 1;
+    color: var(--mute);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .view {
+    height: 140px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  .view small {
+    display: block;
+    margin-top: 6px;
+    color: var(--mute);
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 11px;
+  }
+  .legend {
+    margin-top: 16px;
+    color: var(--mute);
+    white-space: pre;
+    font-size: 12px;
+  }
+</style>
+<body>
+  <header>
+    <strong>PASEO · BROWSERBASE</strong>
+    <span>one jar · many sessions · many tabs · one live-view piece</span>
+  </header>
+  <div class="pane" id="pane"></div>
+  <script>
+    const state = {
+      contextId: "ea0a9b9a",
+      sessions: [
+        {
+          id: "d90d772c",
+          tabs: [
+            { id: "t-cnbc", url: "https://www.cnbc.com/markets/us-markets/", label: "CNBC", sub: "US Markets News" },
+          ],
+        },
+        {
+          id: "d1d32e71",
+          tabs: [
+            { id: "t-fox", url: "https://www.foxbusiness.com/markets", label: "Fox Business", sub: "Markets News" },
+          ],
+        },
+      ],
+    };
+
+    function liveView(tab, host) {
+      host.textContent = "";
+      const box = document.createElement("div");
+      box.className = "view";
+      box.style.background = tab.id.includes("fox") ? "#1c1410" : "#10141c";
+      box.innerHTML = `<div>${tab.label}<small>${tab.sub}<br>${tab.url}</small></div>`;
+      host.appendChild(box);
+    }
+
+    function popLive(tab) {
+      const w = window.open("", `live-${tab.id}`, "popup=1,width=1100,height=800");
+      if (!w) return;
+      w.document.title = tab.label;
+      w.document.body.style.cssText =
+        "margin:0;background:#11110e;color:#e7e2d3;font:13px ui-monospace,Menlo,monospace";
+      const note = w.document.createElement("div");
+      note.style.cssText = "padding:6px 10px;border-bottom:1px solid #3a372e;color:#8a8474";
+      note.textContent = "same live-view piece · popped out of the pane";
+      const host = w.document.createElement("div");
+      host.style.height = "calc(100vh - 28px)";
+      w.document.body.append(note, host);
+      liveView(tab, host);
+      host.firstChild.style.height = "100%";
+    }
+
+    function render() {
+      const pane = document.getElementById("pane");
+      pane.textContent = "";
+
+      const ctx = document.createElement("div");
+      ctx.className = "context";
+      ctx.innerHTML = `<div class="bar">
+        <span>context ${state.contextId} · paseo-desktop · ${state.sessions.length} sessions</span>
+      </div>`;
+      const addSession = document.createElement("button");
+      addSession.textContent = "+ session";
+      addSession.addEventListener("click", () => {
+        const n = state.sessions.length + 1;
+        state.sessions.push({
+          id: "sess-" + n,
+          tabs: [{ id: "t-" + n, url: "https://example.com/", label: "New session", sub: "blank tab" }],
+        });
+        render();
+      });
+      ctx.querySelector(".bar").append(addSession);
+
+      for (const session of state.sessions) {
+        const s = document.createElement("div");
+        s.className = "session";
+        s.innerHTML = `<div class="bar">
+          <span>session ${session.id} · ${session.tabs.length} tab${session.tabs.length === 1 ? "" : "s"}</span>
+        </div>`;
+        const addTab = document.createElement("button");
+        addTab.textContent = "+ tab";
+        addTab.addEventListener("click", () => {
+          const n = session.tabs.length + 1;
+          session.tabs.push({
+            id: session.id + "-t" + n,
+            url: "https://example.com/",
+            label: "New tab",
+            sub: "in this session only",
+          });
+          render();
+        });
+        s.querySelector(".bar").append(addTab);
+
+        for (const tab of session.tabs) {
+          const t = document.createElement("div");
+          t.className = "tab";
+          const chrome = document.createElement("div");
+          chrome.className = "chrome";
+          chrome.innerHTML = `<span>tab ${tab.id}</span><span class="url">${tab.url}</span>`;
+          const pop = document.createElement("button");
+          pop.textContent = "↗";
+          pop.setAttribute("aria-label", "Pop out live view");
+          pop.addEventListener("click", () => popLive(tab));
+          chrome.append(pop);
+          const host = document.createElement("div");
+          liveView(tab, host);
+          t.append(chrome, host);
+          s.append(t);
+        }
+        ctx.append(s);
+      }
+
+      const legend = document.createElement("div");
+      legend.className = "legend";
+      legend.textContent =
+        "context\n  └── session   (many)\n        └── tab   (many per session)\n              └── live view  →  embed here  |  ↗ same piece, new window\n\n+ session belongs on the context.  + tab belongs on that session.\nDo not flatten tabs across sessions.";
+
+      pane.append(ctx, legend);
+    }
+
+    render();
+  </script>
+</body>
+</html>

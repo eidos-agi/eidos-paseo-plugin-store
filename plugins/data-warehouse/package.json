@@ -1,0 +1,23 @@
+{
+  "name": "data-warehouse",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Paseo Data tab \u2014 Data Connections and a read-only SQL viewer",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@getpaseo/client": "^0.4.0",
+    "@tanstack/react-query": "^5.90.11",
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "~19.2.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
+  }
+}
